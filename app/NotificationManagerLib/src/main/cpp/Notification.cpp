@@ -106,3 +106,9 @@ bool Notification::IsNotificationTime() {
 void Notification::Notified() {
     _is_sent=true;
 }
+
+/// \brief Method used to know if the notification has been already sent or not.
+/// \brief The method returns 'true' if the notifications has been already sent, it return 'false' if it is still waiting.
+bool Notification::IsSent() {
+    return _is_sent;
+}

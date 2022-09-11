@@ -59,8 +59,10 @@ public:
 
     //method used to check if the current notification must be notified
     bool IsNotificationTime(void);
-    //method used to mark the current notification as sent
+    //method used to mark the current notification is sent
     void Notified(void);
+    //method used to find if the current notification has been already sent
+    bool IsSent(void);
 
 };
 
