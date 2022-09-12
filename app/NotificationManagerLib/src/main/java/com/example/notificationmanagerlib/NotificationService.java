@@ -24,6 +24,7 @@ public class NotificationService extends Service {
         return null;
     }
 
+    /// \brief Private method used to create a notification channel used by the service.
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             final NotificationChannel notificationChannel = new NotificationChannel(
@@ -34,52 +35,21 @@ public class NotificationService extends Service {
             final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
             notificationManager.createNotificationChannel(notificationChannel);
         }
-        Toast.makeText(this, "Channel created", Toast.LENGTH_SHORT).show();
     }
 
-    private void startNotification(){
-        String input = "Counting your steps...";
-        Resources res = this.getResources();
-        int icon = res.getIdentifier("notification_icon", "drawable", "com.example.notificationmanagerlib");
-        Intent notificationIntent = new Intent(this,com.example.notificationmanagerlib.NotificationManagerClass.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this,
-                0, notificationIntent, 0);
-        Toast.makeText(this, "Notification on creation", Toast.LENGTH_SHORT).show();
-        Notification notification = new NotificationCompat.Builder(this, "PedometerLib")
-                .setContentTitle("Background Walking Service")
-                .setContentText(input)
-                .setSmallIcon(icon)
-                .setContentIntent(pendingIntent)
-                .build();
-        startForeground(112, notification);
-        Toast.makeText(this, "Notification on service created", Toast.LENGTH_SHORT).show();
+    /// \brief Private method used to check if a certain notification has to be sent. It is the main functionality of this service.
+    private void startNotificationCheck(){
         /*
-        final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        if(notificationManager != null){
-            Toast.makeText(this, "Notification prepared", Toast.LENGTH_SHORT).show();
-        }
-        else{
-            Toast.makeText(this, "Notification NOT prepared", Toast.LENGTH_SHORT).show();
-        }
-        notificationManager.notify(3,notification);
-    */
+            Not implemented because it does not work with the created unity activity.
+            It should substitute the "CheckAllNotification()" method of the "NotificationManagerClass" class working in background and sending notifications when needed.
+         */
     }
 
-
-    @Override
-    public void onCreate() {
-
-    }
-
-    @Override
-    public void onTaskRemoved(Intent rootIntent) {
-
-    }
-
+    /// \brief Method called when the service is started, it creates the notification channel and launch its background work to send the notifications when they are scheduled.
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         createNotificationChannel();
-        startNotification();
+        startNotificationCheck();
         super.onCreate();
         return START_NOT_STICKY;
     }

@@ -39,7 +39,7 @@ chrono::system_clock sys_clk;
 char next_ID=1;
 //Global arrays containing the title and texts used for the notification
 string titles_arr[MAX_ELEMENTS]={"8 Ball Pool",
-                       "Carrom Pool",
+                       "Agario",
                        "Subway Surfers",
                        "Mini Basketball",
                        "Mini Football",
@@ -57,9 +57,9 @@ string titles_arr[MAX_ELEMENTS]={"8 Ball Pool",
                        "Motorsport Manager Online",
                        "Darts of Fury",
                        "Cricket League",
-                       "Agario"};
+                       "Carrom Pool"};
 string texts_arr[MAX_ELEMENTS]={"The World's #1 multiplayer pool game!",
-                      "Carrom Pool is an easy-to-play multiplayer board game. Are you up for the challenge?",
+                      "Are you predator or prey?",
                       "Have you got what it takes to help Jake and his friends escape the grumpy guard in one of the most exciting endless runners of all time?",
                       "Put on your sneakers, and dominate the court! Experience Basketball like never before!",
                       "Wild football fun at your fingertips!",
@@ -77,7 +77,7 @@ string texts_arr[MAX_ELEMENTS]={"The World's #1 multiplayer pool game!",
                       "Motorsport Manager Online takes the acclaimed race strategy game to mobile for the first time!",
                       "Play amazing darts arenas and take on real players from all around the world!",
                       "Bat, bowl and field your way to the top of the league. Compete in this real-time multiplayer cricket game!",
-                      "Are you predator or prey?"};
+                      "Carrom Pool is an easy-to-play multiplayer board game. Are you up for the challenge?"};
 
 /// \brief Function used to obtain the index of the std::vector containing the Notification object with a certain identifier (ID)
 /// \param ID is the univocal identifier of the requested notification.
@@ -272,6 +272,68 @@ Java_com_example_notificationmanagerlib_NotificationManagerClass_GetNotImgIDByID
     return img_id;
 }
 
+/// \brief Implementation of the Java function used to set the title related to a single scheduled notification.
+/// \param env is a pointer to a structure storing all JNI function pointers (automatically defined at compiling and linking time)
+/// \param jobj is the object of the class where this function is used (automatically defined at compiling and linking time).
+/// \param id is the univocal identifier (ID) of the notification that has to be considered.
+/// \param text is a jstring (string) containing the title of the wanted notification.
+/// /// \return The function returns 'true' if the title is correctly set, it returns 'false' otherwise.
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_notificationmanagerlib_NotificationManagerClass_SetNotTitleByID(JNIEnv *env, jobject thiz, jchar id, jstring title) {
+    int index= GetNotIndexByID(id);
+    bool res=false;
+    jboolean isCopy;
+    const char *convertedValue = (env)->GetStringUTFChars(title, &isCopy);
+    string tmp_str = convertedValue;
+
+    if(index>=0){
+        res=true;
+        NotificationsVec[index].SetText(tmp_str);
+    }
+    return res;
+}
+
+/// \brief Implementation of the Java function used to set the text related to a single scheduled notification.
+/// \param env is a pointer to a structure storing all JNI function pointers (automatically defined at compiling and linking time)
+/// \param jobj is the object of the class where this function is used (automatically defined at compiling and linking time).
+/// \param id is the univocal identifier (ID) of the notification that has to be considered.
+/// \param text is a jstring (string) containing the text of the wanted notification.
+/// /// \return The function returns 'true' if the text is correctly set, it returns 'false' otherwise.
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_notificationmanagerlib_NotificationManagerClass_SetNotTextByID(JNIEnv *env, jobject thiz, jchar id, jstring text) {
+    int index= GetNotIndexByID(id);
+    bool res=false;
+    jboolean isCopy;
+    const char *convertedValue = (env)->GetStringUTFChars(text, &isCopy);
+    string tmp_str = convertedValue;
+
+    if(index>=0){
+        res=true;
+        NotificationsVec[index].SetText(tmp_str);
+    }
+    return res;
+}
+
+/// \brief Implementation of the Java function used to set the identifier of the image related to a single scheduled notification.
+/// \param env is a pointer to a structure storing all JNI function pointers (automatically defined at compiling and linking time)
+/// \param jobj is the object of the class where this function is used (automatically defined at compiling and linking time).
+/// \param id is the univocal identifier (ID) of the notification that has to be considered.
+/// \param img_id is an jint (int) containing the identifier of the image related to the wanted notification.
+/// /// \return The function returns 'true' if the image identifier is correctly set, it returns 'false' otherwise.
+extern "C"
+JNIEXPORT jboolean JNICALL
+Java_com_example_notificationmanagerlib_NotificationManagerClass_SetNotImgIDByID(JNIEnv *env, jobject thiz, jchar id, jint img_id) {
+    int index= GetNotIndexByID(id);
+    bool res=false;
+    if(index>=0){
+        res=true;
+        NotificationsVec[index].SetImageID(img_id);
+    }
+    return res;
+}
+
 /// \brief Implementation of the Java function used to swap two scheduled notification (their notification times are swapped).
 /// \param env is a pointer to a structure storing all JNI function pointers (automatically defined at compiling and linking time)
 /// \param jobj is the object of the class where this function is used (automatically defined at compiling and linking time).
@@ -280,17 +342,21 @@ Java_com_example_notificationmanagerlib_NotificationManagerClass_GetNotImgIDByID
 /// \return The function returns 'true' if the two notifications exist and are correctly swapped, it returns 'false' otherwise.
 extern "C"
 JNIEXPORT jboolean JNICALL
-Java_com_example_notificationmanagerlib_NotificationManagerClass_SwapNotify(JNIEnv *env, jobject jobj, jchar id_1, jchar id_2) {
+Java_com_example_notificationmanagerlib_NotificationManagerClass_SwapNotifications(JNIEnv *env, jobject jobj, jchar id_1, jchar id_2) {
     bool res=false;
     int index1= GetNotIndexByID(id_1);
     int index2= GetNotIndexByID(id_2);
     chrono::system_clock::time_point tmp_time;
 
+    //The two notifications must exist
     if(index1>=0 && index2>=0){
-        tmp_time=NotificationsVec[index1].GetNotTime();
-        NotificationsVec[index1].SetNotTime(NotificationsVec[index2].GetNotTime());
-        NotificationsVec[index2].SetNotTime(tmp_time);
-        res= true;
+        //Both notifications has to be still pending
+        if(!NotificationsVec[index1].IsSent() && !NotificationsVec[index2].IsSent()){
+            tmp_time=NotificationsVec[index1].GetNotTime();
+            NotificationsVec[index1].SetNotTime(NotificationsVec[index2].GetNotTime());
+            NotificationsVec[index2].SetNotTime(tmp_time);
+            res= true;
+        }
     }
     return res;
 }

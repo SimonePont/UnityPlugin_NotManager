@@ -44,7 +44,10 @@ public final class NotificationManagerClass extends Application {
     private native String GetNotTitleByID(char id);
     private native String GetNotTextByID(char id);
     private native int GetNotImgIDByID(char id);
-    private native boolean SwapNotify(char id_1, char id_2);
+    private native boolean SetNotTitleByID(char id, String title);
+    private native boolean SetNotTextByID(char id, String text);
+    private native boolean SetNotImgIDByID(char id, int img_id);
+    private native boolean SwapNotifications(char id_1, char id_2);
 
     //Load the .cpp file where the native methods are implemented
     static {
@@ -57,6 +60,12 @@ public final class NotificationManagerClass extends Application {
         super.onCreate();
         NotificationManagerClass._plugin_context=getApplicationContext();
 
+    }
+
+    /// \brief Method used to show a toast notification with a specific text
+    /// \param msg is the text displayed by the toast notification
+    public void ShowToastNot(String msg){
+        Toast.makeText(_unity_activity, msg, Toast.LENGTH_SHORT).show();
     }
 
     /// \brief Encapsulation of the native private method used to schedule a set of 'not_number' new notifications, one every 'sec_between_not' seconds.
@@ -90,7 +99,7 @@ public final class NotificationManagerClass extends Application {
     /// \param ID is the univocal identifier (ID) of the notification that has to be deleted.
     public void DelSingleNot(char ID){
         DeleteSingleNotification(ID);
-        Toast.makeText(_unity_activity, "Notifications "+ID+" deleted!", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(_unity_activity, "Notifications "+ID+" deleted!", Toast.LENGTH_SHORT).show();
     }
 
     /// \brief Encapsulation of the native private method used to get the title of a single notification.
@@ -114,6 +123,14 @@ public final class NotificationManagerClass extends Application {
         return GetNotImgIDByID(ID);
     }
 
+    /// \brief Encapsulation of the native private method used to swap the scheduled time of two notifications.
+    /// \param ID_1 is the univocal identifier (ID) of the first notification.
+    /// \param ID_2 is the univocal identifier (ID) of the second notification.
+    /// \return The method returns 'true' if the two notifications exists and are correctly swapped, it returns 'false' otherwise.
+    public boolean SwapNot(char ID_1, char ID_2){
+        return SwapNotifications(ID_1,ID_2);
+    }
+
     /// \brief Method used to manually set the internal flag that enables/disables the check of the scheduled notifications.
     /// \param val is a boolean indicating the value that has to be set for the flag: 'true' means check enabled, 'false' means check disabled.
     public void SetCheckFlg(boolean val){
@@ -129,6 +146,8 @@ public final class NotificationManagerClass extends Application {
     /// \brief Method used to receive the activity from Unity
     /// \param unity_act is the unity Activity this library has to work on.
     public static void ReceiveUnityActivity(Activity unity_act){
+
+        /* !!!!NOT WORKING IN UNITY PROJECT!!!!
         String[] perms= new String[1];
         perms[0]=Manifest.permission.ACTIVITY_RECOGNITION;
         _unity_activity=unity_act;
@@ -136,6 +155,8 @@ public final class NotificationManagerClass extends Application {
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(NotificationManagerClass._unity_activity, perms,1);
         }
+        */
+        _unity_activity=unity_act;
 
     }
     /// \brief Method used to receive the context from Unity
@@ -156,13 +177,10 @@ public final class NotificationManagerClass extends Application {
             int importance = NotificationManager.IMPORTANCE_DEFAULT;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID,"channel_name", importance);
             channel.setDescription(description);
-            // Register the channel with the system; you can't change the importance
-            // or other notification behaviors after this
+            // Register the channel with the system
             NotificationManager notificationManager = _unity_activity.getSystemService(NotificationManager.class);
             notificationManager.createNotificationChannel(channel);
         }
-
-        Toast.makeText(_unity_activity, "Notification channel created", Toast.LENGTH_SHORT).show();
         return ret;
     }
 
@@ -191,15 +209,7 @@ public final class NotificationManagerClass extends Application {
                 .setAutoCancel(true);
 
         final NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
-        if(notificationManager != null){
-            Toast.makeText(_unity_activity, "Notification prepared", Toast.LENGTH_SHORT).show();
-        }
-        else{
-            Toast.makeText(_unity_activity, "Notification NOT prepared", Toast.LENGTH_SHORT).show();
-        }
         notificationManager.notify(not_ID,builder.build());
-
-        Toast.makeText(_unity_activity, "Notification sent", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -211,7 +221,6 @@ public final class NotificationManagerClass extends Application {
         _service_intent=new Intent(_unity_activity, NotificationService.class);
         if (_unity_activity != null) {
             _unity_activity.startService(_service_intent);
-            Toast.makeText(_unity_activity, "Service created", Toast.LENGTH_SHORT).show();
             ret=true;
         }
         return ret;
